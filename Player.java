@@ -379,7 +379,7 @@ class Player {
                 String avoidmines = s.avoid(mines);
                 String avoidcannon = s.avoid(cannonballs);
                 String shoot = s.fireCannonball(enemyShips);
-                String goBarrel = s.moveToBarrel(barrels);
+                String goBarrel = s.moveToBarrel(barrels, myShips);
                 String errOut = "";
                 
                 if (shoot != null && fireCooldown == 0) {
