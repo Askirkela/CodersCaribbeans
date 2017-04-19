@@ -191,8 +191,8 @@ class Ship extends Entity {
                             default:
                                 break;
                         }
-                    }else if (s.pos.y <= 5) {
-                        switch(s.rotation) {
+                    }else if (pos.y <= 5) {
+                        switch(rotation) {
                             case 0:
                                 ret = move(pos.x + 2, pos.y + 2);
                                 break;
@@ -215,7 +215,7 @@ class Ship extends Entity {
                                 break;
                         }
                     } else {
-                        switch(s.rotation) {
+                        switch(rotation) {
                             case 0:
                                 ret = move(pos.x + 2, pos.y);
                                 break;
@@ -397,7 +397,7 @@ class Player {
                     errOut = "Fetch barrel";
                 } else {
                     if(s.speed > 0) {
-                        move = move(s.pos.x, s.pos.y);
+                        move = s.move(s.pos.x, s.pos.y);
                     } else {
                         move = "WAIT";
                     }
