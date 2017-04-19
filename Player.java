@@ -223,8 +223,8 @@ class Player {
             for (int i = 0; i < myShipCount; i++) {
                 Ship s = myShips.get(i);
                 String move;
-                String avoidmines = avoidMines(s, mines);
-                String avoidcannon = avoidCannonball(s, cannonballs);
+                String avoidmines = avoid(s, mines);
+                String avoidcannon = avoid(s, cannonballs);
                 String shoot = fireCannonball(s, enemyShips);
                 String goBarrel = moveToBarrel(s, barrels);
                 String errOut = "";
@@ -311,13 +311,13 @@ class Player {
         return ret;
     }
     
-    public static String avoidCannonball(Ship s, ArrayList<Cannonball> arr) {
+    public static String avoid(Ship s, ArrayList<? extends Entity> arr) {
         String ret = null;
         if (arr.size() > 0) {
             Entity c = s.closest(arr);
             if (c != null) {
                 double dist = s.distance(c);
-                if (dist < 2) {
+                if (dist <= 2) {
                     if (s.pos.x >= 15) {
                         switch(s.rotation) {
                             case 0:
@@ -393,7 +393,7 @@ class Player {
         }
         return ret;
     }
-    public static String avoidMines(Ship s, ArrayList<Mine> arr) {
+    /*public static String avoidMines(Ship s, ArrayList<Mine> arr) {
         String ret = null;
         if (arr.size() > 0) {
             Entity e = s.closest(arr);
@@ -436,7 +436,7 @@ class Player {
             }
         }
         return ret;
-    }
+    }*/
     
     public static String moveToBarrel(Ship s, ArrayList<Barrel> arr) {
         String ret = null;
