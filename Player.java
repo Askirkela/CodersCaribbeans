@@ -27,7 +27,7 @@ class Point {
         double dist = Math.sqrt((this.x - p.x) * (this.x - p.x) + (this.y - p.y) * (this.y - p.y));
         return Math.abs(dist);
     }
-    public Point futurePos(Point pos, int dir, int speed) {
+    public static Point futurePos(Point pos, int dir, int speed) {
         Point p = new Point();
         switch(dir) {
             case 0:
@@ -257,7 +257,7 @@ class Ship extends Entity {
             if (foe != null) {
             double dist = distance(foe);
                 if (dist < 4 && foe.rumStock < rumStock) {
-                    ret = fire(futurePos(foe.pos, foe.rotation, foe.speed));
+                    ret = fire(Point.futurePos(foe.pos, foe.rotation, foe.speed));
                 }
             }
         }
