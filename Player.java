@@ -145,18 +145,18 @@ class Ship extends Entity {
         String ret = null;
         if (arr.size() > 0) {
             Barrel barrel = closestBarrel(arr);
-            boolean b = false;
+            boolean targetted = false;
             for(int i = 0; i < ships.size(); i++) {
-                if (ships.get(i).id != s.id && ships.get(i).target == barrel.id)
-                    b = true;
+                if (ships.get(i).id != id && ships.get(i).target == barrel.id)
+                    targetted = true;
             }
-            if (barrel != null && b == false) {
-                s.target = barrel.id;
+            if (barrel != null && targetted == false) {
+                target = barrel.id;
                 ret = move(barrel.pos.x, barrel.pos.y);
             } else {
                 ArrayList<Barrel> l = arr;
                 l.remove(barrel);
-                ret = moveToBarrel(s, l);
+                ret = moveToBarrel(l, ships);
             }
         }
         return ret;
