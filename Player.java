@@ -27,6 +27,38 @@ class Point {
         double dist = Math.sqrt((this.x - p.x) * (this.x - p.x) + (this.y - p.y) * (this.y - p.y));
         return Math.abs(dist);
     }
+    public Point futurePos(Point pos, int dir, int speed) {
+        Point p = new Point();
+        switch(dir) {
+            case 0:
+                p.x = pos.x;
+                p.y = pos.y + speed;
+                break;
+            case 1:
+                p.x = pos.x + speed;
+                p.y = pos.y - speed;
+                break;
+            case 2:
+                p.x = pos.x - speed;
+                p.y = pos.y - speed;
+                break;
+            case 3:
+                p.x = pos.x - speed;
+                p.y = pos.y;
+                break;
+            case 4:
+                p.x = pos.x - speed;
+                p.y = pos.y + speed;
+                break;
+            case 5:
+                p.x = pos.x + speed;
+                p.y = pos.y + speed;
+                break;
+            default:
+                break;
+        }
+        return p;
+    }
 }
 
 abstract class Entity {
@@ -108,7 +140,131 @@ class Ship extends Entity {
         }
         return e;
     }
+    
+    public String moveToBarrel(ArrayList<Barrel> arr, ArrayList<Ship> ships) {
+        String ret = null;
+        if (arr.size() > 0) {
+            Barrel barrel = closestBarrel(arr);
+            boolean b = false;
+            for(int i = 0; i < ships.size(); i++) {
+                if (ships.get(i).id != s.id && ships.get(i).target == barrel.id)
+                    b = true;
+            }
+            if (barrel != null && b == false) {
+                s.target = barrel.id;
+                ret = move(barrel.pos.x, barrel.pos.y);
+            } else {
+                ArrayList<Barrel> l = arr;
+                l.remove(barrel);
+                ret = moveToBarrel(s, l);
+            }
+        }
+        return ret;
+    }
+    public String avoid(ArrayList<? extends Entity> arr) {
+        String ret = null;
+        if (arr.size() > 0) {
+            Entity c = closest(arr);
+            if (c != null) {
+                double dist = distance(c);
+                if (dist <= 2) {
+                    if (pos.x >= 15) {
+                        switch(rotation) {
+                            case 0:
+                                ret = move(pos.x - 2, pos.y);
+                                break;
+                            case 1:
+                                ret = move(pos.x - 2, pos.y + 2);
+                                break;
+                            case 2:
+                                ret = move(pos.x - 2, pos.y + 2);
+                                break;
+                            case 3:
+                                ret = move(pos.x - 2, pos.y);
+                                break;
+                            case 4:
+                                ret = move(pos.x - 2, pos.y - 2);
+                                break;
+                            case 5:
+                                ret = move(pos.x + 2, pos.y - 2);
+                                break;
+                            default:
+                                break;
+                        }
+                    }else if (s.pos.y <= 5) {
+                        switch(s.rotation) {
+                            case 0:
+                                ret = move(pos.x + 2, pos.y + 2);
+                                break;
+                            case 1:
+                                ret = move(pos.x + 2, pos.y + 2);
+                                break;
+                            case 2:
+                                ret = move(pos.x - 2,pos.y + 2);
+                                break;
+                            case 3:
+                                ret = move(pos.x - 2, pos.y);
+                                break;
+                            case 4:
+                                ret = move(pos.x - 2, pos.y + 2);
+                                break;
+                            case 5:
+                                ret = move(pos.x + 2, pos.y + 2);
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        switch(s.rotation) {
+                            case 0:
+                                ret = move(pos.x + 2, pos.y);
+                                break;
+                            case 1:
+                                ret = move(pos.x + 2, pos.y + 1);
+                                break;
+                            case 2:
+                                ret = move(pos.x - 2, pos.y + 1);
+                                break;
+                            case 3:
+                                ret = move(pos.x - 2, pos.y);
+                                break;
+                            case 4:
+                                ret = move(pos.x - 2, pos.y - 1);
+                                break;
+                            case 5:
+                                ret = move(pos.x + 2, pos.y - 1);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+    public String move(int x, int y) {
+        return "MOVE " + x + " " + y;
+    }
+    public String fire(Point p) {
+        return "FIRE " + p.x + " " + p.y;
+    }
+    
+    public String fireCannonball(ArrayList<Ship> arr) {
+        String ret = null;
+        if (arr.size() > 0) {
+            Ship foe = closestShip(arr);
+            if (foe != null) {
+            double dist = distance(foe);
+                if (dist < 4 && foe.rumStock < rumStock) {
+                    ret = fire(futurePos(foe.pos, foe.rotation, foe.speed));
+                }
+            }
+        }
+        return ret;
+    }
 }
+
 class Barrel extends Entity {
     int amount;
      
@@ -126,6 +282,7 @@ class Barrel extends Entity {
             ", amount: " + amount + " ]";
     }
 }
+
 class Mine extends Entity {
     public Mine() {
         super();
@@ -138,6 +295,7 @@ class Mine extends Entity {
         return "MINE [ id: " + id + ", pos: " + pos.toString() + " ]";
     }
 }
+
 class Cannonball extends Entity {
     int fromShip;
     int turns;
@@ -215,18 +373,13 @@ class Player {
                 }
             }
             
-            /*printArr(ships);
-            printArr(barrels);
-            printArr(mines);
-            printArr(cannonballs);*/
-            
             for (int i = 0; i < myShipCount; i++) {
                 Ship s = myShips.get(i);
                 String move;
-                String avoidmines = avoid(s, mines);
-                String avoidcannon = avoid(s, cannonballs);
-                String shoot = fireCannonball(s, enemyShips);
-                String goBarrel = moveToBarrel(s, barrels);
+                String avoidmines = s.avoid(mines);
+                String avoidcannon = s.avoid(cannonballs);
+                String shoot = s.fireCannonball(enemyShips);
+                String goBarrel = s.moveToBarrel(barrels);
                 String errOut = "";
                 
                 if (shoot != null && fireCooldown == 0) {
@@ -252,212 +405,10 @@ class Player {
             
                 System.err.println(errOut);
                 System.out.println(move);
-            
             }
         }
     }
     
-    public static String move(int x, int y) {
-        return "MOVE " + x + " " + y;
-    }
-    public static String fire(Point p) {
-        return "FIRE " + p.x + " " + p.y;
-    }
-    public static Point futurePos(Point pos, int dir, int speed) {
-        Point p = new Point();
-        switch(dir) {
-            case 0:
-                p.x = pos.x;
-                p.y = pos.y + speed;
-                break;
-            case 1:
-                p.x = pos.x + speed;
-                p.y = pos.y - speed;
-                break;
-            case 2:
-                p.x = pos.x - speed;
-                p.y = pos.y - speed;
-                break;
-            case 3:
-                p.x = pos.x - speed;
-                p.y = pos.y;
-                break;
-            case 4:
-                p.x = pos.x - speed;
-                p.y = pos.y + speed;
-                break;
-            case 5:
-                p.x = pos.x + speed;
-                p.y = pos.y + speed;
-                break;
-            default:
-                break;
-        }
-        
-        return p;
-    }
-    
-    public static String fireCannonball(Ship s, ArrayList<Ship> arr) {
-        String ret = null;
-        if (arr.size() > 0) {
-            Ship foe = s.closestShip(arr);
-            if (foe != null) {
-            double dist = s.distance(foe);
-                if (dist < 4 && foe.rumStock < s.rumStock) {
-                    ret = fire(futurePos(foe.pos, foe.rotation, foe.speed));
-                }
-            }
-        }
-        return ret;
-    }
-    
-    public static String avoid(Ship s, ArrayList<? extends Entity> arr) {
-        String ret = null;
-        if (arr.size() > 0) {
-            Entity c = s.closest(arr);
-            if (c != null) {
-                double dist = s.distance(c);
-                if (dist <= 2) {
-                    if (s.pos.x >= 15) {
-                        switch(s.rotation) {
-                            case 0:
-                                ret = move(s.pos.x - 2, s.pos.y);
-                                break;
-                            case 1:
-                                ret = move(s.pos.x - 2, s.pos.y + 2);
-                                break;
-                            case 2:
-                                ret = move(s.pos.x - 2, s.pos.y + 2);
-                                break;
-                            case 3:
-                                ret = move(s.pos.x - 2, s.pos.y);
-                                break;
-                            case 4:
-                                ret = move(s.pos.x - 2, s.pos.y - 2);
-                                break;
-                            case 5:
-                                ret = move(s.pos.x + 2, s.pos.y - 2);
-                                break;
-                            default:
-                                break;
-                        }
-                    }else if (s.pos.y <= 5) {
-                        switch(s.rotation) {
-                            case 0:
-                                ret = move(s.pos.x + 2, s.pos.y + 2);
-                                break;
-                            case 1:
-                                ret = move(s.pos.x + 2, s.pos.y + 2);
-                                break;
-                            case 2:
-                                ret = move(s.pos.x - 2, s.pos.y + 2);
-                                break;
-                            case 3:
-                                ret = move(s.pos.x - 2, s.pos.y);
-                                break;
-                            case 4:
-                                ret = move(s.pos.x - 2, s.pos.y + 2);
-                                break;
-                            case 5:
-                                ret = move(s.pos.x + 2, s.pos.y + 2);
-                                break;
-                            default:
-                                break;
-                        }
-                    } else {
-                        switch(s.rotation) {
-                            case 0:
-                                ret = move(s.pos.x + 2, s.pos.y);
-                                break;
-                            case 1:
-                                ret = move(s.pos.x + 2, s.pos.y + 1);
-                                break;
-                            case 2:
-                                ret = move(s.pos.x - 2, s.pos.y + 1);
-                                break;
-                            case 3:
-                                ret = move(s.pos.x - 2, s.pos.y);
-                                break;
-                            case 4:
-                                ret = move(s.pos.x - 2, s.pos.y - 1);
-                                break;
-                            case 5:
-                                ret = move(s.pos.x + 2, s.pos.y - 1);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-        return ret;
-    }
-    /*public static String avoidMines(Ship s, ArrayList<Mine> arr) {
-        String ret = null;
-        if (arr.size() > 0) {
-            Entity e = s.closest(arr);
-            if (e != null) {
-                double dist = s.distance(e);
-                if (dist < 3) {
-                    switch(s.rotation) {
-                        case 0:
-                            if (e.pos.x > s.pos.x && e.pos.y == s.pos.y)
-                                ret = move(s.pos.x + 2, s.pos.y + 2);
-                            break;
-                        case 1:
-                            if ((e.pos.x == s.pos.x || e.pos.x == (s.pos.x - 1) || e.pos.x == (s.pos.x + 1)) 
-                                && e.pos.y < s.pos.y)
-                                ret = move(s.pos.x + 2, s.pos.y);
-                            break;
-                        case 2:
-                            if ((e.pos.x == s.pos.x || e.pos.x == (s.pos.x - 1) || e.pos.x == (s.pos.x + 1)) 
-                                && e.pos.y < s.pos.y)
-                                ret = move(s.pos.x - 2, s.pos.y);
-                            break;
-                        case 3:
-                            if (e.pos.x < s.pos.x && e.pos.y == s.pos.y)
-                                ret = move(s.pos.x - 2, s.pos.y - 2);
-                            break;
-                        case 4:
-                            if ((e.pos.x == s.pos.x || e.pos.x == (s.pos.x - 1) || e.pos.x == (s.pos.x - 1)) 
-                                && e.pos.y > s.pos.y)
-                                ret = move(s.pos.x + 2, s.pos.y);
-                            break;
-                        case 5:
-                            if ((e.pos.x == s.pos.x || e.pos.x == (s.pos.x - 1) || e.pos.x == (s.pos.x - 1)) 
-                                && e.pos.y > s.pos.y)
-                                ret = move(s.pos.x - 2, s.pos.y);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-        return ret;
-    }*/
-    
-    public static String moveToBarrel(Ship s, ArrayList<Barrel> arr) {
-        String ret = null;
-        if (arr.size() > 0) {
-            Barrel barrel = s.closestBarrel(arr);
-            boolean b = false;
-            for(int i = 0; i < myShips.size(); i++) {
-                if (myShips.get(i).id != s.id && myShips.get(i).target == barrel.id)
-                    b = true;
-            }
-            if (barrel != null && b == false) {
-                s.target = barrel.id;
-                ret = move(barrel.pos.x, barrel.pos.y);
-            } else {
-                ArrayList<Barrel> l = arr;
-                l.remove(barrel);
-                ret = moveToBarrel(s, l);
-            }
-        }
-        return ret;
-    }
     public static void printArr(ArrayList<? extends Entity> arr) {
         for(int i = 0; i < arr.size(); i++) {
             System.err.println(arr.get(i).toString());
