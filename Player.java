@@ -256,10 +256,17 @@ class Ship extends Entity {
             Ship foe = closestShip(arr);
             if (foe != null) {
             double dist = distance(foe);
-                if (dist < 4 && foe.rumStock < rumStock) {
+                if (dist < 6 && foe.rumStock < rumStock) {
                     ret = fire(Point.futurePos(foe.pos, foe.rotation, foe.speed));
                 }
             }
+        }
+        return ret;
+    }
+    public String dropMine(int cd) {
+        String ret = null;
+        if (cd == 0) {
+            ret = "MINE";
         }
         return ret;
     }
@@ -379,7 +386,8 @@ class Player {
                 String avoidmines = s.avoid(mines);
                 String avoidcannon = s.avoid(cannonballs);
                 String shoot = s.fireCannonball(enemyShips);
-                String goBarrel = s.moveToBarrel(barrels, myShips);
+                String fetchBarrel = s.moveToBarrel(barrels, myShips);
+                String mine = s.dropMine(mineCooldown);
                 String errOut = "";
                 
                 if (shoot != null && fireCooldown == 0) {
@@ -392,10 +400,13 @@ class Player {
                 } else if (avoidcannon != null) {
                     move = avoidcannon;
                     errOut = "Avoid cannonball";
-                } else if (goBarrel != null) {
-                    move = goBarrel;
+                } else if (fetchBarrel != null) {
+                    move = fetchBarrel;
                     errOut = "Fetch barrel";
-                } else {
+                } else if (mine != null) {
+                    move = mine;
+                    errOut = "Dropping a mine";
+                }else {
                     if(s.speed > 0) {
                         move = s.move(s.pos.x, s.pos.y);
                     } else {
